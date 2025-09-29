@@ -1,34 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+import Layout from './components/Layout'
+import MarketTicker from './components/MarketTicker'
+import OrderBook from './components/OrderBook'
+import TradeForm from './components/TradeForm'
+import OrdersTable from './components/OrdersTable'
+import PriceChart from './components/PriceChart'
 
+function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Layout>
+      <div className="grid grid-cols-12 gap-4">
+        <div className="col-span-12 lg:col-span-8 space-y-4">
+          <MarketTicker />
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-12 lg:col-span-6">
+              <div className="rounded-2xl bg-white/5 shadow-card p-4">
+                <h2 className="text-lg font-semibold mb-2">Order Book</h2>
+                <OrderBook />
+              </div>
+            </div>
+            <div className="col-span-12 lg:col-span-6">
+              <div className="rounded-2xl bg-white/5 shadow-card p-4">
+                <h2 className="text-lg font-semibold mb-2">Recent Trades</h2>
+                <PriceChart />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-span-12 lg:col-span-4 space-y-4">
+          <div className="rounded-2xl bg-white/5 shadow-card p-4">
+            <h2 className="text-lg font-semibold mb-2">Trade</h2>
+            <TradeForm />
+          </div>
+          <div className="rounded-2xl bg-white/5 shadow-card p-4">
+            <h2 className="text-lg font-semibold mb-2">My Orders</h2>
+            <OrdersTable />
+          </div>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </Layout>
   )
 }
 
