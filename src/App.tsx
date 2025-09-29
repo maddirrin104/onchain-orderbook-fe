@@ -6,12 +6,14 @@ import MarketsPage from './pages/Markets'
 import PortfolioPage from './pages/Portfolio'
 import { SettingsPage } from './pages/Settings'
 import DocsPage from './pages/Docs'
+import HomePage from './pages/Homepage'
 
 export default function App() {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<TradePage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/trade" element={<TradePage />} />
         <Route path="/markets" element={<MarketsPage />} />
         <Route path="/portfolio" element={<PortfolioPage />} />
         <Route path="/settings" element={<SettingsPage />} />
