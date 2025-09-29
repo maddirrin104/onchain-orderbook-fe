@@ -106,40 +106,42 @@ index.css
 **src/main.tsx**
 
 ```tsx
-import React from 'react'
-import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
 import { config } from './lib/wagmi'
-import App from './App'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import './index.css'
+import App from './App.tsx'
 
 const client = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false } }
 })
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={client}>
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <QueryClientProvider client={client}>
+      <WagmiProvider config={config}>
         <App />
-      </QueryClientProvider>
-    </WagmiProvider>
-  </React.StrictMode>
+      </WagmiProvider>
+    </QueryClientProvider>
+  </StrictMode>,
 )
 ```
 
 **src/App.tsx**
 
 ```tsx
+import './App.css'
+
 import Layout from './components/Layout'
 import MarketTicker from './components/MarketTicker'
 import OrderBook from './components/OrderBook'
 import TradeForm from './components/TradeForm'
 import OrdersTable from './components/OrdersTable'
 import PriceChart from './components/PriceChart'
-
-export default function App(){
+  
+function App() {
   return (
     <Layout>
       <div className="grid grid-cols-12 gap-4">
@@ -174,6 +176,9 @@ export default function App(){
     </Layout>
   )
 }
+
+export default App
+
 ```
 
 ---
@@ -383,22 +388,26 @@ export function useDexActions(){
 
 ```tsx
 import WalletBar from './WalletBar'
+import logo2 from '../assets/logo2.png'
 
 export default function Layout({ children }: { children: React.ReactNode }){
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-50 backdrop-blur bg-black/30 border-b border-white/10">
         <div className="container flex items-center justify-between py-3">
-          <div className="text-xl font-bold">On‑Chain Orderbook DEX</div>
+          <div className="text-xl font-bold">
+            <img src={logo2} alt="Logo" className="inline h-8 mr-2 -mt-1" />
+            ChainBook
+          </div>
           <WalletBar />
         </div>
       </header>
       <main className="container py-6">
         {children}
       </main>
-      <footer className="container py-8 text-sm text-zinc-400">
+      {/* <footer className="container py-8 text-sm text-zinc-400">
         Built with React • wagmi • viem
-      </footer>
+      </footer> */}
     </div>
   )
 }

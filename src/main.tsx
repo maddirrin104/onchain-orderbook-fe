@@ -3,6 +3,7 @@ import { WagmiProvider } from 'wagmi'
 import { config } from './lib/wagmi'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 
@@ -14,7 +15,10 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={client}>
       <WagmiProvider config={config}>
-        <App />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+
       </WagmiProvider>
     </QueryClientProvider>
   </StrictMode>,
