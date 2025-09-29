@@ -8,7 +8,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-white">
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center text-center py-24 px-6 bg-gradient-to-b from-zinc-900 to-zinc-950">
+      <section className="flex flex-col items-center justify-center text-center py-10 px-6 bg-gradient-to-b from-zinc-900 to-zinc-950">
         <h1 className="text-5xl font-extrabold mb-4">ChainBook DEX</h1>
         <p className="text-lg text-zinc-400 mb-6">
           On-chain Order Book Exchange – 100% Transparent & Secure
@@ -21,7 +21,7 @@ export default function HomePage() {
       </section>
 
       {/* Markets Overview */}
-      <section className="py-16 px-6 max-w-6xl mx-auto w-full">
+      <section className="py-4 px-6 max-w-6xl mx-auto w-full">
         <h2 className="text-2xl font-semibold mb-6">Top Markets</h2>
         <div className="overflow-x-auto rounded-2xl shadow-md">
           <table className="w-full text-left text-sm border-collapse">
@@ -65,7 +65,7 @@ export default function HomePage() {
           <Card className="bg-zinc-800 rounded-2xl shadow-lg">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <Shield className="w-10 h-10 text-indigo-400 mb-4" />
-              <h3 className="font-semibold mb-2">On-chain 100%</h3>
+              <h3 className="font-semibold mb-2 text-zinc-100">On-chain 100%</h3>
               <p className="text-zinc-400">Mọi lệnh được lưu và xác minh trực tiếp trên blockchain.</p>
             </CardContent>
           </Card>
@@ -73,7 +73,7 @@ export default function HomePage() {
           <Card className="bg-zinc-800 rounded-2xl shadow-lg">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <Zap className="w-10 h-10 text-yellow-400 mb-4" />
-              <h3 className="font-semibold mb-2">Fast Settlement</h3>
+              <h3 className="font-semibold mb-2 text-zinc-100">Fast Settlement</h3>
               <p className="text-zinc-400">Khớp lệnh nhanh chóng, minh bạch, không bên trung gian.</p>
             </CardContent>
           </Card>
@@ -81,7 +81,7 @@ export default function HomePage() {
           <Card className="bg-zinc-800 rounded-2xl shadow-lg">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <BookOpen className="w-10 h-10 text-green-400 mb-4" />
-              <h3 className="font-semibold mb-2">Transparent Orderbook</h3>
+              <h3 className="font-semibold mb-2 text-zinc-100">Transparent Orderbook</h3>
               <p className="text-zinc-400">Sổ lệnh công khai, dễ dàng kiểm chứng và audit.</p>
             </CardContent>
           </Card>
@@ -98,7 +98,7 @@ export default function HomePage() {
                 <span className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-600 text-white font-bold mb-3">
                   {i + 1}
                 </span>
-                <p className="font-medium">{step}</p>
+                <p className="font-medium text-zinc-100">{step}</p>
               </CardContent>
             </Card>
           ))}
@@ -110,7 +110,7 @@ export default function HomePage() {
         <p>© 2025 ChainBook DEX. All rights reserved.</p>
         <div className="flex justify-center gap-4 mt-2">
           <a href="/docs" className="hover:text-white">Docs</a>
-          <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a>
+          <a href="https://github.com/maddirrin104/onchain-orderbook-fe" target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a>
           <a href="#" className="hover:text-white">Twitter</a>
         </div>
       </footer>
