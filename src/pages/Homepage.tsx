@@ -3,8 +3,14 @@ import { Button } from "../components/ui/button"
 import { Card, CardContent } from "../components/ui/card"
 import { ArrowRight, Shield, Zap, BookOpen } from "lucide-react"
 import { Link } from 'react-router-dom'
+import { usePriceFeed } from "../context/PriceFeedContext"
+import MarketTicker from "../components/MarketTicker"
+
+const PAIRS = ["ETH - USD", "BTC - USD", "AUD - USD"];
 
 export default function HomePage() {
+  const { prices, status, updatedAt } = usePriceFeed();
+
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-white">
       {/* Hero Section */}
@@ -18,6 +24,12 @@ export default function HomePage() {
             Start Trading <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
         </Link>
+        <div className="mt-6 w-full max-w-4xl">
+          <MarketTicker defaultSymbol="ETH - USD" />
+        </div>
+        <p className="mt-2 text-xs text-zinc-500">
+          {status === "ok" && updatedAt ? `Updated: ${new Date(updatedAt).toLocaleTimeString()}` : status === "loading" ? "Loading feeds…" : ""}
+        </p>
       </section>
 
       {/* Markets Overview */}
@@ -34,20 +46,22 @@ export default function HomePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {[
-                { pair: "ETH-USD", price: "2451.23", change: "+1.23%", volume: "1,235" },
-                { pair: "BTC-USD", price: "65,321.12", change: "-0.52%", volume: "4,532" },
-                { pair: "SOL-USD", price: "152.40", change: "+3.12%", volume: "987" },
-              ].map((m, i) => (
-                <tr key={i} className="hover:bg-zinc-900">
-                  <td className="py-3 px-4 font-semibold">{m.pair}</td>
-                  <td className="py-3 px-4">${m.price}</td>
-                  <td className={`py-3 px-4 ${m.change.startsWith("+") ? "text-green-400" : "text-red-400"}`}>
-                    {m.change}
-                  </td>
-                  <td className="py-3 px-4">{m.volume}</td>
-                </tr>
-              ))}
+              {PAIRS.map((pair) => {
+                const price = prices[pair];
+                // mock values cho demo (có thể thay bằng dữ liệu thật sau)
+                const change = (pair === "BTC - USD" ? -0.52 : 1.23);
+                const volume = pair === "BTC - USD" ? 4532 : pair === "ETH - USD" ? 1235 : 987;
+                return (
+                  <tr key={pair} className="hover:bg-zinc-900">
+                    <td className="py-3 px-4 font-semibold">{pair}</td>
+                    <td className="py-3 px-4">{price !== undefined ? `$${price.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : (status === "loading" ? "Loading…" : "N/A")}</td>
+                    <td className={`py-3 px-4 ${change >= 0 ? "text-green-400" : "text-red-400"}`}>
+                      {change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`}
+                    </td>
+                    <td className="py-3 px-4">{volume.toLocaleString()}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
