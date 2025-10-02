@@ -62,7 +62,7 @@ export default function HomePage() {
                     </td>
                     <td className="py-3 px-4 text-green-400">
                       {loading ? "…" : withUsd(t?.bestBid, pair, 6)}
-                    </td>
+                    </td> 
                     <td className="py-3 px-4 text-red-400">
                       {loading ? "…" : withUsd(t?.bestAsk, pair, 6)}
                     </td>
