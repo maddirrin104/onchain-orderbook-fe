@@ -1,15 +1,21 @@
-// src/pages/HomePage.tsx
-import { Button } from "../components/ui/button"
-import { Card, CardContent } from "../components/ui/card"
-import { ArrowRight, Shield, Zap, BookOpen } from "lucide-react"
-import { Link } from 'react-router-dom'
-import { usePriceFeed } from "../context/PriceFeedContext"
-import MarketTicker from "../components/MarketTicker"
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { ArrowRight, Shield, Zap, BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
+import MarketTicker from "../components/MarketTicker";
+import { useTickers } from "../hooks/useTickers";
 
-const PAIRS = ["ETH - USD", "BTC - USD", "AUD - USD"];
+const FALLBACK_PAIRS = ["ETH - USD", "BTC - USD", "AUD - USD"]; // sẽ lọc theo cặp thực có
 
 export default function HomePage() {
-  const { prices, status, updatedAt } = usePriceFeed();
+  const { symbols, tickers, loading } = useTickers(1500);
+
+  // Chọn danh sách hiển thị: ưu tiên FALLBACK nếu có trong on-chain, ngược lại dùng symbols từ contract
+  const showPairs = symbols.length
+    ? FALLBACK_PAIRS.filter((s) => symbols.includes(s)).concat(
+        symbols.filter((s) => !FALLBACK_PAIRS.includes(s))
+      ).slice(0, 6) // tối đa 6 hàng
+    : FALLBACK_PAIRS;
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-white">
@@ -25,14 +31,13 @@ export default function HomePage() {
           </Button>
         </Link>
         <div className="mt-6 w-full max-w-4xl">
+          {/* MarketTicker đã chuyển sang on-chain (không Chainlink) */}
           <MarketTicker defaultSymbol="ETH - USD" />
         </div>
-        <p className="mt-2 text-xs text-zinc-500">
-          {status === "ok" && updatedAt ? `Updated: ${new Date(updatedAt).toLocaleTimeString()}` : status === "loading" ? "Loading feeds…" : ""}
-        </p>
+        {/* Bỏ phần status/updatedAt của PriceFeedContext */}
       </section>
 
-      {/* Markets Overview */}
+      {/* Markets Overview (on-chain) */}
       <section className="py-4 px-6 max-w-6xl mx-auto w-full">
         <h2 className="text-2xl font-semibold mb-6">Top Markets</h2>
         <div className="overflow-x-auto rounded-2xl shadow-md">
@@ -41,27 +46,31 @@ export default function HomePage() {
               <tr>
                 <th className="py-3 px-4">Pair</th>
                 <th className="py-3 px-4">Last Price</th>
-                <th className="py-3 px-4">24h Change</th>
-                <th className="py-3 px-4">Volume</th>
+                <th className="py-3 px-4">Bid</th>
+                <th className="py-3 px-4">Ask</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {PAIRS.map((pair) => {
-                const price = prices[pair];
-                // mock values cho demo (có thể thay bằng dữ liệu thật sau)
-                const change = (pair === "BTC - USD" ? -0.52 : 1.23);
-                const volume = pair === "BTC - USD" ? 4532 : pair === "ETH - USD" ? 1235 : 987;
+              {showPairs.map((pair) => {
+                const t = tickers[pair];
                 return (
                   <tr key={pair} className="hover:bg-zinc-900">
                     <td className="py-3 px-4 font-semibold">{pair}</td>
-                    <td className="py-3 px-4">{price !== undefined ? `$${price.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : (status === "loading" ? "Loading…" : "N/A")}</td>
-                    <td className={`py-3 px-4 ${change >= 0 ? "text-green-400" : "text-red-400"}`}>
-                      {change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`}
+                    <td className="py-3 px-4">
+                      {loading ? "Loading…" : (t?.last ?? "—")}
                     </td>
-                    <td className="py-3 px-4">{volume.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-green-400">
+                      {loading ? "…" : (t?.bestBid ?? "—")}
+                    </td>
+                    <td className="py-3 px-4 text-red-400">
+                      {loading ? "…" : (t?.bestAsk ?? "—")}
+                    </td>
                   </tr>
-                )
+                );
               })}
+              {!showPairs.length && (
+                <tr><td className="py-3 px-4" colSpan={4}>No pairs</td></tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -83,7 +92,6 @@ export default function HomePage() {
               <p className="text-zinc-400">Mọi lệnh được lưu và xác minh trực tiếp trên blockchain.</p>
             </CardContent>
           </Card>
-
           <Card className="bg-zinc-800 rounded-2xl shadow-lg">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <Zap className="w-10 h-10 text-yellow-400 mb-4" />
@@ -91,31 +99,13 @@ export default function HomePage() {
               <p className="text-zinc-400">Khớp lệnh nhanh chóng, minh bạch, không bên trung gian.</p>
             </CardContent>
           </Card>
-
-          <Card className="bg-zinc-800 rounded-2xl shadow-lg">
+          <Card className="bg-zinc-800 rounded-2l shadow-lg">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <BookOpen className="w-10 h-10 text-green-400 mb-4" />
               <h3 className="font-semibold mb-2 text-zinc-100">Transparent Orderbook</h3>
               <p className="text-zinc-400">Sổ lệnh công khai, dễ dàng kiểm chứng và audit.</p>
             </CardContent>
           </Card>
-        </div>
-      </section>
-
-      {/* How it Works */}
-      <section className="py-16 px-6 max-w-5xl mx-auto text-center">
-        <h2 className="text-2xl font-semibold mb-8">How It Works</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {["Connect Wallet", "Deposit Token", "Place Order", "Withdraw / Trade"].map((step, i) => (
-            <Card key={i} className="bg-zinc-800 rounded-2xl">
-              <CardContent className="p-6 flex flex-col items-center">
-                <span className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-600 text-white font-bold mb-3">
-                  {i + 1}
-                </span>
-                <p className="font-medium text-zinc-100">{step}</p>
-              </CardContent>
-            </Card>
-          ))}
         </div>
       </section>
 
@@ -129,5 +119,5 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

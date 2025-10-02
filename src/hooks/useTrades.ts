@@ -1,37 +1,66 @@
-import { useQuery } from '@tanstack/react-query'
-import type { Hex } from 'viem'
-import { createPublicClient, getContract, http } from 'viem'
-import { hardhat } from 'viem/chains'
-import Dex from '../abis/Dex.json'
-import type { Trade } from '../types'
+// src/hooks/useTrades.ts
+import { useEffect, useState } from "react";
+import { getOB } from "../lib/eth";
+import { fmtUnits } from "../lib/units";
 
-const DEX_ADDRESS: Hex = (import.meta.env.VITE_DEX_ADDRESS || '0x0000000000000000000000000000000000000000') as Hex
-const MARKET = (import.meta.env.VITE_MARKET_SYMBOL || 'ETH-USD')
+type TradeRow = {
+  ts: number;         // ms timestamp cho recharts
+  price: string;      // đã scale
+  amount: string;     // đã scale
+  maker: string;
+  taker: string;
+  takerSide: "BUY" | "SELL";
+};
 
-const marketToBytes32 = (sym: string) => {
-  const encoder = new TextEncoder()
-  const bytes = encoder.encode(sym)
-  const arr = new Uint8Array(32)
-  arr.set(bytes.slice(0, 32))
-  return ('0x' + Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')) as Hex
-}
+export function useTrades(limit = 100, pairId = 1, pollMs = 1000) {
+  const [data, setData] = useState<TradeRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const client = createPublicClient({ chain: hardhat, transport: http('http://127.0.0.1:8545') })
+  useEffect(() => {
+    let t: any;
+    let cancel = false;
 
-export function useTrades(count = 60){
-  return useQuery<Trade[]>({
-    queryKey: ['trades', MARKET, count, DEX_ADDRESS],
-    queryFn: async () => {
-      if(DEX_ADDRESS === '0x0000000000000000000000000000000000000000') return []
-      const dex = getContract({ address: DEX_ADDRESS, abi: (Dex as any).abi, client })
-      const [prices, sizes, sides, timestamps] = await dex.read.getRecentTrades([marketToBytes32(MARKET), BigInt(count)]) as any
-      return prices.map((p: bigint, i: number) => ({
-        price: p.toString(),
-        size: (sizes[i] as bigint).toString(),
-        side: ((sides[i] as number) === 0 ? 'BUY' : 'SELL') as any,
-        ts: Number(timestamps[i] as bigint) * 1000,
-      }))
-    },
-    refetchInterval: 2000,
-  })
+    (async () => {
+      try {
+        const ob = await getOB();
+        const meta = await ob.getPairMeta(pairId);
+        const priceDec = Number(meta[1]);
+        const baseDec  = Number(meta[2]);
+
+        const load = async () => {
+          try {
+            const out = await ob.getRecentTrades(pairId);
+            const rows = (out as any[]).map((t) => ({
+              ts: Number(t.ts) * 1000,
+              price: fmtUnits(t.price as bigint, priceDec),
+              amount: fmtUnits(t.amount as bigint, baseDec),
+              maker: t.maker as string,
+              taker: t.taker as string,
+              takerSide: Number(t.takerSide) === 0 ? "BUY" as "BUY" : "SELL" as "SELL",
+            }));
+            // newest-first theo contract, mình cứ slice theo limit
+            const limited = rows.slice(0, limit);
+            if (!cancel) {
+              setData(limited);
+              setLoading(false);
+            }
+          } catch (e) {
+            console.error("getRecentTrades:", e);
+          }
+        };
+
+        await load();
+        t = setInterval(load, pollMs);
+      } catch (e) {
+        console.error("useTrades init:", e);
+      }
+    })();
+
+    return () => {
+      cancel = true;
+      if (t) clearInterval(t);
+    };
+  }, [limit, pairId, pollMs]);
+
+  return { data, loading };
 }
