@@ -1,8 +1,10 @@
 // src/components/MarketTicker.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { usePairIndex } from "../hooks/usePairIndex";
 import { useTicker } from "../hooks/useTicker";
 import { useTrades } from "../hooks/useTrades";
+import { withUsd } from "../lib/format";
+import { useMarket } from "../context/MarketContext";
 
 // shadcn/ui
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../components/ui/select";
@@ -15,26 +17,28 @@ type Props = {
 
 export default function MarketTicker({ defaultSymbol = "ETH - USD", showStats = true }: Props) {
   const { symbols, idBySymbol, loading: loadingPairs } = usePairIndex();
+  const { symbol, setSymbol, pairId } = useMarket();
 
   // chọn symbol mặc định nếu có, không thì chọn symbol đầu tiên
-  const initialSymbol = useMemo(() => {
+  const initial = useMemo(() => {
+    if (symbol) return symbol;
     if (symbols.includes(defaultSymbol)) return defaultSymbol;
     return symbols[0];
-  }, [symbols, defaultSymbol]);
-
-  const [symbol, setSymbol] = useState<string>(defaultSymbol);
+  }, [symbol, symbols, defaultSymbol]);
 
   useEffect(() => {
-    if (initialSymbol && symbol !== initialSymbol) setSymbol(initialSymbol);
-  }, [initialSymbol]); // eslint-disable-line
+    if (initial && symbol !== initial) setSymbol(initial);
+  }, [initial]); // eslint-disable-line
 
-  const pairId = idBySymbol[symbol] ?? 1;
+  if (!symbol && initial) setSymbol(initial);
 
-  // đọc ticker on-chain
-  const { symbol: liveSym, bestBid, bestAsk, last, loading } = useTicker(pairId);
+  const pid = pairId ?? (initial ? idBySymbol[initial] : 1);
+
+  // đọc ticker on-chain theo pairId hiện tại
+  const { symbol: liveSym, bestBid, bestAsk, last, loading } = useTicker(pid);
 
   // đọc recent trades để tính high/low/vol trong “khoảng gần nhất”
-  const { data: trades } = useTrades(64, pairId, 1500);
+  const { data: trades } = useTrades(64, pid, 1500);
   const high = useMemo(() => {
     if (!trades || trades.length === 0) return undefined;
     return trades.reduce((m, t) => Math.max(m, Number(t.price)), -Infinity);
@@ -75,7 +79,7 @@ export default function MarketTicker({ defaultSymbol = "ETH - USD", showStats = 
             <span className="text-zinc-400">Loading…</span>
           ) : last ? (
             <>
-              {last}
+              {withUsd(last, liveSym ?? symbol)}
               {/* phần trăm thay đổi “tạm” nếu cần: dựa vào last vs (high+low)/2 */}
               {high && low && (
                 <span className={(Number(last) >= (high+low)/2) ? "text-green-400 ml-2" : "text-red-400 ml-2"}>
@@ -101,9 +105,9 @@ export default function MarketTicker({ defaultSymbol = "ETH - USD", showStats = 
         {/* Bid/Ask */}
         <div className="text-sm flex items-center gap-3">
           <div className="text-zinc-400">Bid:</div>
-          <div className="text-green-400 font-medium">{bestBid ?? "—"}</div>
+          <div className="text-green-400 font-medium">{withUsd(bestBid, liveSym ?? symbol)}</div>
           <div className="text-zinc-400">Ask:</div>
-          <div className="text-red-400 font-medium">{bestAsk ?? "—"}</div>
+          <div className="text-red-400 font-medium">{withUsd(bestAsk, liveSym ?? symbol)}</div>
         </div>
       </div>
     </div>

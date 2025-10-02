@@ -5,3 +5,14 @@ export const fmt = {
     return Intl.NumberFormat('en-US', { maximumFractionDigits: d }).format(x)
   },
 }
+
+export const isUsdPair = (sym?: string) =>
+  !!sym && sym.toUpperCase().trim().endsWith(" - USD");
+
+export function withUsd(val?: string | number, sym?: string, digits = 6) {
+  if (val === undefined || val === null || isNaN(Number(val))) return "—";
+  const s = typeof val === "number"
+    ? val.toLocaleString(undefined, { maximumFractionDigits: digits })
+    : val; // val đã là string format sẵn (fmtUnits) -> giữ nguyên
+  return `${isUsdPair(sym) ? "$" : ""}${s}`;
+}

@@ -4,6 +4,7 @@ import { ArrowRight, Shield, Zap, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import MarketTicker from "../components/MarketTicker";
 import { useTickers } from "../hooks/useTickers";
+import { withUsd } from "../lib/format";
 
 const FALLBACK_PAIRS = ["ETH - USD", "BTC - USD", "AUD - USD"]; // sẽ lọc theo cặp thực có
 
@@ -57,13 +58,13 @@ export default function HomePage() {
                   <tr key={pair} className="hover:bg-zinc-900">
                     <td className="py-3 px-4 font-semibold">{pair}</td>
                     <td className="py-3 px-4">
-                      {loading ? "Loading…" : (t?.last ?? "—")}
+                      {loading ? "Loading…" : withUsd(t?.last, pair, 6)}
                     </td>
                     <td className="py-3 px-4 text-green-400">
-                      {loading ? "…" : (t?.bestBid ?? "—")}
+                      {loading ? "…" : withUsd(t?.bestBid, pair, 6)}
                     </td>
                     <td className="py-3 px-4 text-red-400">
-                      {loading ? "…" : (t?.bestAsk ?? "—")}
+                      {loading ? "…" : withUsd(t?.bestAsk, pair, 6)}
                     </td>
                   </tr>
                 );

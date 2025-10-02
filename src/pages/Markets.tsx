@@ -1,8 +1,19 @@
 import { Link } from "react-router-dom";
-import { useTickers } from "../hooks/useTickers";
+import { useMarketMetrics } from "../hooks/useMarketMetrics";
+import { withUsd } from "../lib/format";
 
 export default function MarketsPage() {
-  const { symbols, tickers, loading } = useTickers(1500);
+  const { symbols, metrics, loading, error } = useMarketMetrics(2000);
+
+  if (error) {
+    return (
+      <div className="max-w-3xl mx-auto p-4">
+        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-4">
@@ -11,11 +22,12 @@ export default function MarketsPage() {
         <Link to="/" className="text-indigo-400 hover:underline">← Back</Link>
       </div>
 
-      {/* lưới card các market (on-chain) */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {symbols.map((sym) => {
-          const t = tickers[sym];
-          const live = Boolean(t?.last || t?.bestBid || t?.bestAsk);
+          const m = metrics[sym] ?? {};
+          const live = Boolean(m.last || m.bestBid || m.bestAsk || (m.trades ?? 0) > 0);
+          const ch = m.changePct ?? null;
+          const chStr = ch === null ? "—" : `${ch >= 0 ? "+" : ""}${ch.toFixed(2)}%`;
 
           return (
             <div
@@ -29,12 +41,25 @@ export default function MarketsPage() {
                 </span>
               </div>
 
-              <div className="text-2xl mt-2">
-                {loading ? "Loading..." : (t?.last ?? "—")}
+              <div className="mt-2 flex items-baseline gap-3">
+                <div className="text-2xl">{loading ? "Loading..." : withUsd(m.last, sym, 6)}</div>
+                <div className={`text-sm ${ch !== null ? (ch >= 0 ? "text-green-400" : "text-red-400") : "text-zinc-400"}`}>
+                  {chStr}
+                </div>
               </div>
 
-              <div className="text-xs text-zinc-500 mt-2">
-                ChainBook
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-zinc-400 mt-3">
+                <div>Bid</div><div className="text-green-400 text-right">{withUsd(m.bestBid, sym, 6)}</div>
+                <div>Ask</div><div className="text-red-400 text-right">{withUsd(m.bestAsk, sym, 6)}</div>
+                <div>Volume (recent)</div><div className="text-right">{withUsd(m.volume, sym, 6)}</div>
+                {/* Nếu muốn thêm H/L: */}
+                {/* <div>High</div><div className="text-right">{fmtNum(m.high, 6)}</div>
+                <div>Low</div><div className="text-right">{fmtNum(m.low, 6)}</div> */}
+                <div>Trades</div><div className="text-right">{m.trades ?? 0}</div>
+              </div>
+
+              <div className="text-[11px] text-zinc-600 mt-2">
+                ChainBook - DEX No.1 Viet Nam
               </div>
             </div>
           );
@@ -45,10 +70,6 @@ export default function MarketsPage() {
           </div>
         )}
       </div>
-
-      {/* <div className="text-xs text-zinc-400 mt-6">
-        * Dữ liệu lấy trực tiếp từ OnchainOrderBook local; không gọi Chainlink.
-      </div> */}
     </div>
   );
 }
